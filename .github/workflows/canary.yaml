@@ -1,0 +1,73 @@
+name: Canary Whisperer — PR Risk Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install .
+
+      - name: Extract PR description
+        id: pr
+        run: |
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ github.event.pull_request.body }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run risk analysis
+        id: analyze
+        env:
+          USE_MOCK: 'true'
+        run: |
+          python -c "
+          import asyncio, json, sys
+          sys.path.insert(0, '.')
+          from agent.orchestrator import AnalysisPipeline
+          from mcp.dynatrace_client import DynatraceClient
+
+          async def main():
+              client = DynatraceClient(use_mock=True)
+              pipeline = AnalysisPipeline(client=client)
+              desc = '''${{ steps.pr.outputs.body }}'''
+              if not desc.strip():
+                  desc = '${{ github.event.pull_request.title }}'
+              report = await pipeline.run(desc)
+              print(json.dumps(report.model_dump(mode='json'), indent=2))
+              # Write summary for comment
+              with open('report.md', 'w') as f:
+                  f.write(f'## 🐤 Canary Whisperer Risk Report\n\n')
+                  f.write(f'**Decision:** {report.decision.value}\n\n')
+                  f.write(f'**Risk Level:** {report.risk_score.value}\n\n')
+                  f.write(f'**Rationale:** {report.decision_rationale}\n\n')
+                  f.write(f'**Blast Radius:** {report.blast_radius.total_services_affected} services, ')
+                  f.write(f'{report.blast_radius.user_impact_percentage:.1f}% users\n\n')
+                  if report.top_risks:
+                      f.write('### Top Risks\n\n')
+                      for risk in report.top_risks:
+                          f.write(f'- **{risk.title}** ({risk.severity.value}): {risk.description}\n')
+                  f.write(f'\n### Deploy Strategy\n\n{report.deploy_strategy.strategy}\n')
+
+          asyncio.run(main())
+          "
+
+      - name: Comment on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: report.md

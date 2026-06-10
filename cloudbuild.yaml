@@ -1,0 +1,51 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/canary-whisperer:$SHORT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/canary-whisperer:latest'
+      - '.'
+
+  # Push the Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/canary-whisperer:$SHORT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/canary-whisperer:latest'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'canary-whisperer'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/canary-whisperer:$SHORT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'USE_MOCK=true,DEFAULT_SCENARIO=risky'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '60'
+
+images:
+  - 'gcr.io/$PROJECT_ID/canary-whisperer:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/canary-whisperer:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

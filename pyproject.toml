@@ -1,0 +1,56 @@
+[project]
+name = "canary-whisperer"
+version = "0.1.0"
+description = "Pre-deployment risk simulation agent — powered by Dynatrace MCP + Google ADK"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+
+dependencies = [
+    "google-adk>=2.1.0",
+    "google-genai>=1.75.0",
+    "fastapi>=0.136.0",
+    "uvicorn[standard]>=0.48.0",
+    "pydantic>=2.13.0",
+    "pydantic-settings>=2.14.0",
+    "python-dotenv>=1.2.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8.0",
+]
+
+[project.scripts]
+canary-api = "api.main:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Explicitly include all source packages
+packages = ["agent", "dtmcp", "api", "canary_agent"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "agent/",
+    "dtmcp/",
+    "api/",
+    "canary_agent/",
+    "tests/",
+    "README.md",
+    "pyproject.toml",
+    ".env.example",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

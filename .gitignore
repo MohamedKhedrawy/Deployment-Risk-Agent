@@ -1,0 +1,33 @@
+# Secrets
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ADK artifacts
+.adk/artifacts/
+# Node
+node_modules/
+
+# Cache
+.pytest_cache/
+.ruff_cache/
+
+# ADK
+.adk/
