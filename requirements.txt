@@ -1,0 +1,11 @@
+# Python dependencies for Vercel serverless runtime
+# google-adk is intentionally excluded — it requires a persistent process
+# (stdio MCP transport) which is incompatible with serverless. Demo mode
+# does not need it.
+fastapi>=0.136.0
+uvicorn[standard]>=0.48.0
+pydantic>=2.13.0
+pydantic-settings>=2.14.0
+python-dotenv>=1.2.0
+httpx>=0.28.0
+google-genai>=1.16.0

@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:8000');
 
 export async function analyzeFeature(featureDescription) {
   const response = await fetch(`${API_BASE}/analyze?demo=true`, {

@@ -1,12 +1,26 @@
 {
+  "version": 2,
   "builds": [
-    { "src": "api/main.py", "use": "@vercel/python" },
-    { "src": "web-ui/package.json", "use": "@vercel/static-build" }
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "web-ui/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
   ],
-  "rewrites": [
-    { "source": "/analyze", "destination": "/api/main.py" },
-    { "source": "/health", "destination": "/api/main.py" },
-    { "source": "/api/(.*)", "destination": "/api/main.py" },
-    { "source": "/(.*)", "destination": "/web-ui/dist/$1" }
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "web-ui/$1"
+    }
   ]
 }
