@@ -1,0 +1,12 @@
+{
+  "builds": [
+    { "src": "api/main.py", "use": "@vercel/python" },
+    { "src": "web-ui/package.json", "use": "@vercel/static-build" }
+  ],
+  "rewrites": [
+    { "source": "/analyze", "destination": "/api/main.py" },
+    { "source": "/health", "destination": "/api/main.py" },
+    { "source": "/api/(.*)", "destination": "/api/main.py" },
+    { "source": "/(.*)", "destination": "/web-ui/dist/$1" }
+  ]
+}
